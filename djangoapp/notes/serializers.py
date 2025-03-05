@@ -4,11 +4,7 @@ from notes.models import Whiskey
 
 
 class WhiskeySerializer(serializers.ModelSerializer):
-    # owner = serializers.PrimaryKeyRelatedField(read_only=True)
-    owner = serializers.StringRelatedField()
-    # owner = serializers.HyperlinkedRelatedField(
-    #     read_only=True, view_name="customuser-detail"
-    # )
+    owner = serializers.HyperlinkedRelatedField(read_only=True, view_name="user-detail")
 
     class Meta:
         model = Whiskey
