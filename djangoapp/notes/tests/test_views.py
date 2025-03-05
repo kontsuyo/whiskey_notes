@@ -22,7 +22,7 @@ class TestWhiskeyList:
         }
         client = APIClient()
         response = client.post(self.url, data)
-        assert response.status_code == status.HTTP_403_FORBIDDEN  # type:ignore
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED  # type:ignore
 
 
 @pytest.mark.django_db
