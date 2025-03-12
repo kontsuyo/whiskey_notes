@@ -9,18 +9,26 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-def test_whiskey_serializer_owner_field():
-    user = User.objects.create_user(username="testuser")
-    whiskey = Whiskey.objects.create(
-        name="タリスカー",
-        country="SC",
-        alcohol=45.6,
-        cask="バーボン樽",
-        price="4500",
-        owner=user,
-    )
+class TestWhiskeySerializer:
+    def setup_method(self):
+        self.user = User.objects.create_user(username="testuser")
+        self.whiskey = Whiskey.objects.create(
+            name="タリスカー",
+            country="SC",
+            alcohol=45.6,
+            cask="バーボン樽",
+            price="4500",
+            owner=self.user,
+        )
 
-    serializer = WhiskeySerializer(whiskey, context={"request": None})
-    expected_url = reverse("user-detail", args=[user.id])
+    def test_owner_field(self):
+        serializer = WhiskeySerializer(self.whiskey, context={"request": None})
+        assert serializer.data["owner"] == self.user.username
 
-    assert serializer.data["owner"] == expected_url
+    def test_url_field(self):
+        serializer = WhiskeySerializer(self.whiskey, context={"request": None})
+        expected_url = reverse(
+            "whiskey-detail",
+            kwargs={"pk": self.whiskey.id},  # type: ignore
+        )
+        assert serializer.data["url"] == expected_url
