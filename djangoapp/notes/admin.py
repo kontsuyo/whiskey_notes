@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from notes.models import TastingNote, Whisky
+
+admin.site.register(Whisky)
+admin.site.register(TastingNote)
