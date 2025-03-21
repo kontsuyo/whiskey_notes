@@ -13,7 +13,7 @@ RUN apt-get update -qq \
 # モジュールのインストール
 WORKDIR /tmp/work
 COPY requirements.txt ${PWD}
-RUN  pip install -upgrade pip
+# RUN  pip install -upgrade pip
 RUN  pip install -r requirements.txt
 
 # 環境変数の定義

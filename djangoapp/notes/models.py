@@ -3,7 +3,7 @@ from django.db import models
 from accounts.models import CustomUser
 
 
-class Whiskey(models.Model):
+class Whisky(models.Model):
     SCOTLAND = "SC"
     IRELAND = "IR"
     AMERICA = "AM"
@@ -19,6 +19,7 @@ class Whiskey(models.Model):
         (EXTRA, "その他"),
     ]
 
+    created = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=200)
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, blank=True)
     # 関数を作成し、choicesに追加。国によって選べる地域を変えられるように。
@@ -28,7 +29,22 @@ class Whiskey(models.Model):
     img = models.ImageField(blank=True, null=True)
     price = models.CharField(max_length=200, blank=True)
     owner = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="whiskey",
+        CustomUser, related_name="whisky", on_delete=models.CASCADE
     )
+
+    def __str__(self):
+        return str(self.name)
+
+
+class TastingNote(models.Model):
+    whisky = models.ForeignKey(
+        Whisky, related_name="tasting_note", on_delete=models.CASCADE
+    )
+    post_date = models.DateField(auto_now_add=True)
+    note = models.TextField()
+    owner = models.ForeignKey(
+        CustomUser, related_name="tasting_note", on_delete=models.CASCADE
+    )
+
+    def __str__(self) -> str:
+        return self.note

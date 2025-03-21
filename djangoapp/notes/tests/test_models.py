@@ -1,15 +1,15 @@
-from django.contrib.auth import get_user_model
 import pytest
+from django.contrib.auth import get_user_model
 
-from notes.models import Whiskey
+from notes.models import TastingNote, Whisky
 
 User = get_user_model()
 
 
 @pytest.mark.django_db
-class TestWhiskeyModel:
-    def test_register_whiskey(self):
-        user = User.objects.create_user(username="whiskey-lover")
+class TestWhiskyModel:
+    def test_register_whisky(self):
+        user = User.objects.create_user(username="whisky-lover")
 
         name = "タリスカー"
         country = "SC"
@@ -17,7 +17,7 @@ class TestWhiskeyModel:
         cask = "バーボン樽"
         price = "4700円くらい"
 
-        talisker = Whiskey.objects.create(
+        talisker = Whisky.objects.create(
             name=name,
             country=country,
             alcohol=alcohol,
@@ -25,4 +25,13 @@ class TestWhiskeyModel:
             price=price,
             owner=user,
         )
-        assert Whiskey.objects.filter(id=talisker.id).exists()  # type: ignore
+        assert Whisky.objects.filter(id=talisker.id).exists()  # type: ignore
+
+
+@pytest.mark.django_db
+def test_tastingnote_str_representation():
+    user = User.objects.create_user(username="testuser", password="password")
+    whisky = Whisky.objects.create(name="Sample Whisky", owner=user)
+    note = TastingNote.objects.create(whisky=whisky, note="good!", owner=user)
+
+    assert str(note) == "good!"
