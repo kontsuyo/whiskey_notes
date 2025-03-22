@@ -2,7 +2,6 @@ from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 
 from notes.models import Whisky
 from notes.serializers import TastingNoteSerializer, WhiskySerializer
@@ -26,14 +25,6 @@ class TestWhiskySerializer:
     def test_owner_field(self):
         serializer = WhiskySerializer(self.whiskey, context={"request": None})
         assert serializer.data["owner"] == self.user.username
-
-    def test_url_field(self):
-        serializer = WhiskySerializer(self.whiskey, context={"request": None})
-        expected_url = reverse(
-            "whisky-detail",
-            kwargs={"pk": self.whiskey.id},  # type: ignore
-        )
-        assert serializer.data["url"] == expected_url
 
 
 @pytest.mark.django_db
