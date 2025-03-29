@@ -2,25 +2,6 @@ from rest_framework import serializers
 
 from notes.models import TastingNote, Whisky
 
-# class WhiskySerializer(serializers.HyperlinkedModelSerializer):
-#     owner = serializers.CharField(read_only=True, source="owner.username")
-
-
-#     class Meta:
-#         model = Whisky
-#         fields = [
-#             "url",
-#             "id",
-#             "created",
-#             "name",
-#             "country",
-#             "alcohol",
-#             "cask",
-#             "img",
-#             "price",
-#             "owner",
-#         ]
-
 
 class WhiskySerializer(serializers.ModelSerializer):
     owner = serializers.CharField(read_only=True, source="owner.username")

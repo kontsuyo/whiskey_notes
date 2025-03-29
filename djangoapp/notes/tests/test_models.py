@@ -1,37 +1,45 @@
 import pytest
-from django.contrib.auth import get_user_model
-
-from notes.models import TastingNote, Whisky
-
-User = get_user_model()
+from django.core.exceptions import ValidationError
 
 
 @pytest.mark.django_db
-class TestWhiskyModel:
-    def test_register_whisky(self):
-        user = User.objects.create_user(username="whisky-lover")
+def test_whisky_name_exceed_200_character(whisky):
+    whisky.name = "A" * 201
 
-        name = "タリスカー"
-        country = "SC"
-        alcohol = 45.8
-        cask = "バーボン樽"
-        price = "4700円くらい"
+    with pytest.raises(ValidationError) as e:
+        whisky.full_clean()
 
-        talisker = Whisky.objects.create(
-            name=name,
-            country=country,
-            alcohol=alcohol,
-            cask=cask,
-            price=price,
-            owner=user,
-        )
-        assert Whisky.objects.filter(id=talisker.id).exists()  # type: ignore
+    assert (
+        "この値は 200 文字以下でなければなりません( 201 文字になっています)。"
+        in str(e.value)
+    )
 
 
 @pytest.mark.django_db
-def test_tastingnote_str_representation():
-    user = User.objects.create_user(username="testuser", password="password")
-    whisky = Whisky.objects.create(name="Sample Whisky", owner=user)
-    note = TastingNote.objects.create(whisky=whisky, note="good!", owner=user)
+def test_whisky_name_is_empty(whisky):
+    whisky.name = ""
 
+    with pytest.raises(ValidationError) as e:
+        whisky.full_clean()
+
+    assert "このフィールドは空ではいけません。" in str(e.value)
+
+
+@pytest.mark.django_db
+def test_whisky_str_representation(whisky):
+    assert str(whisky) == "Sample Whisky"
+
+
+@pytest.mark.django_db
+def test_tastingnote_note_is_empty(note):
+    note.note = ""
+
+    with pytest.raises(ValidationError) as e:
+        note.full_clean()
+
+    assert "このフィールドは空ではいけません。" in str(e.value)
+
+
+@pytest.mark.django_db
+def test_tastingnote_str_representation(note):
     assert str(note) == "good!"

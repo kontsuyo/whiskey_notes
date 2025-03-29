@@ -20,10 +20,8 @@ class Whisky(models.Model):
     ]
 
     created = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, blank=False, null=False)
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES, blank=True)
-    # 関数を作成し、choicesに追加。国によって選べる地域を変えられるように。
-    # region = models.CharField(choices=, blank=True)
     alcohol = models.FloatField(blank=True, null=True)
     cask = models.CharField(max_length=200, blank=True)
     img = models.ImageField(blank=True, null=True)
@@ -33,7 +31,7 @@ class Whisky(models.Model):
     )
 
     def __str__(self):
-        return str(self.name)
+        return self.name
 
 
 class TastingNote(models.Model):
@@ -41,10 +39,10 @@ class TastingNote(models.Model):
         Whisky, related_name="tasting_note", on_delete=models.CASCADE
     )
     post_date = models.DateField(auto_now_add=True)
-    note = models.TextField()
+    note = models.TextField(blank=False, null=False)
     owner = models.ForeignKey(
         CustomUser, related_name="tasting_note", on_delete=models.CASCADE
     )
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.note

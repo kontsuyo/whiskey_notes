@@ -3,53 +3,38 @@ from unittest.mock import Mock
 import pytest
 from django.contrib.auth import get_user_model
 
-from notes.models import Whisky
 from notes.serializers import TastingNoteSerializer, WhiskySerializer
 
 User = get_user_model()
 
 
 @pytest.mark.django_db
-class TestWhiskySerializer:
-    def setup_method(self):
-        self.user = User.objects.create_user(username="testuser")
-        self.whiskey = Whisky.objects.create(
-            name="タリスカー",
-            country="SC",
-            alcohol=45.6,
-            cask="バーボン樽",
-            price="4500",
-            owner=self.user,
-        )
-
-    def test_owner_field(self):
-        serializer = WhiskySerializer(self.whiskey, context={"request": None})
-        assert serializer.data["owner"] == self.user.username
+def test_whisky_serializer_owner_field(user, whisky):
+    serializer = WhiskySerializer(whisky, context={"request": None})
+    assert serializer.data["owner"] == user.username
 
 
 @pytest.mark.django_db
-def test_tasting_note_serializer_valid_user():
-    user1 = User.objects.create(username="user1")
-    whisky = Whisky.objects.create(name="山崎１２年", owner=user1)
+def test_tastingnote_serializer_owner_field(user, note):
+    serializer = TastingNoteSerializer(note, context={"request": None})
+    assert serializer.data["owner"] == user.username
 
+
+@pytest.mark.django_db
+def test_tasting_note_serializer_valid_user(user, note_payload):
     serializer = TastingNoteSerializer(
-        data={"whisky": whisky.id, "note": "うまい！"},  # type: ignore
-        context={"request": Mock(user=user1)},
+        data=note_payload,
+        context={"request": Mock(user=user)},
     )
-
     assert serializer.is_valid()
 
 
 @pytest.mark.django_db
-def test_tasting_note_serializer_invalid_user():
-    user1 = User.objects.create(username="user1")
-    user2 = User.objects.create(username="user2")
-    whisky = Whisky.objects.create(name="山崎１２年", owner=user1)
-
+def test_tasting_note_serializer_invalid_user(note_payload):
+    another_user = User.objects.create(username="another_user")
     serializer = TastingNoteSerializer(
-        data={"whisky": whisky.id, "note": "うまい！"},  # type: ignore
-        context={"request": Mock(user=user2)},
+        data=note_payload,
+        context={"request": Mock(user=another_user)},
     )
-
     assert not serializer.is_valid()
     assert "whisky" in serializer.errors

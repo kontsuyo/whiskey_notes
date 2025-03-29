@@ -1,82 +1,114 @@
+import logging
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
 
-from accounts.models import CustomUser
-from notes.models import Whisky
+from notes.models import TastingNote, Whisky
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.django_db
-class TestWhiskyList:
-    def setup_method(self):
-        self.url = reverse("whiskies-list")
-
-    def test_unauthenticated_user_can_not_create_whisky_object(self):
-        data = {
-            "name": "タリスカー",
-            "country": "SC",
-            "alcohol": 45.8,
-            "cask": "バーボン樽",
-            "price": "4700円くらい",
-        }
-        client = APIClient()
-        response = client.post(self.url, data)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED  # type:ignore
+def test_create_whisky_authenticated(api_client, user, whisky_payload):
+    api_client.force_authenticate(user=user)
+    response_create = api_client.post(
+        reverse("whisky-list"), data=whisky_payload, format="json"
+    )
+    assert response_create.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db
-class TestWhiskyDetail:
-    def setup_method(self):
-        self.client = APIClient()
-        self.user = CustomUser.objects.create_user(
-            username="testuser", password="password"
-        )
-
-        self.client.force_authenticate(user=self.user)
-        data = {
-            "name": "タリスカー",
-            "country": "SC",
-            "alcohol": 45.8,
-            "cask": "バーボン樽",
-            "price": "4700円くらい",
-        }
-        response = self.client.post(reverse("whiskies-list"), data)
-        assert response.status_code == status.HTTP_201_CREATED  # type:ignore
-
-        self.whisky = Whisky.objects.get(name="タリスカー")
-        self.detail_url = reverse(
-            "whisky-detail", kwargs={"pk": self.whisky.id}  # type: ignore
-        )
-
-    def test_only_user_created_whisky_object_can_update_it(self):
-        another_user = APIClient()
-        another_user.force_authenticate(
-            user=CustomUser.objects.create_user(username="another", password="password")
-        )
-
-        update_data = {"name": "タリスカー１０年"}
-
-        response = another_user.put(self.detail_url, update_data)
-        assert response.status_code == status.HTTP_403_FORBIDDEN  # type: ignore
-
-        response = self.client.put(self.detail_url, update_data)
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_202_ACCEPTED]  # type: ignore
+def test_create_whisky_unauthenticated(api_client, whisky_payload):
+    response_create = api_client.post(
+        reverse("whisky-list"), data=whisky_payload, format="json"
+    )
+    assert response_create.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 @pytest.mark.django_db
-def test_tastingnote_owner_is_request_user():
-    api_client = APIClient()
-    user = User.objects.create_user(username="testuser", password="password")
-    whisky = Whisky.objects.create(name="Sample Whisky", owner=user)
+def test_update_whisky_authenticated(api_client, user, whisky, whisky_payload):
+    api_client.force_authenticate(user=user)
+    whisky_payload["name"] = "Update Whisky"
+    response_update = api_client.patch(
+        reverse("whisky-detail", args=[whisky.id]), whisky_payload, format="json"
+    )
+    assert response_update.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_update_whisky_unauthenticated(api_client, whisky, whisky_payload):
+    whisky_payload["name"] = "Update Whisky"
+    response_update = api_client.patch(
+        reverse("whisky-detail", args=[whisky.id]), whisky_payload, format="json"
+    )
+    assert response_update.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_update_other_users_whisky(api_client, user, whisky_payload):
+    another_user = User.objects.create_user(username="another", password="password")
+    another_whisky = Whisky.objects.create(name="Another Whisky", owner=another_user)
 
     api_client.force_authenticate(user=user)
-    url = reverse("tastingnote-list")
-    data = {"whisky": whisky.id, "note": "フルーティでおいしい"}  # type: ignore
+    whisky_payload["name"] = "Update Whisky"
 
-    response = api_client.post(url, data)
+    response_update = api_client.patch(
+        reverse("whisky-detail", args=[another_whisky.id]), data=whisky_payload, format="json"  # type: ignore
+    )
+    assert response_update.status_code == status.HTTP_403_FORBIDDEN
 
-    assert response.data["owner"] == user.username  # type: ignore
+
+@pytest.mark.django_db
+def test_create_tasting_note_authenticated(api_client, user, note_payload):
+    api_client.force_authenticate(user=user)
+    response_create = api_client.post(
+        reverse("tastingnote-list"), data=note_payload, format="json"
+    )
+    assert response_create.status_code == 201
+
+
+@pytest.mark.django_db
+def test_create_tasting_note_unauthenticated(api_client, note_payload):
+    response_create = api_client.post(
+        reverse("tastingnote-list"), note_payload, format="json"
+    )
+    assert response_create.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_update_tasting_note_authenticated(api_client, user, note, note_payload):
+    api_client.force_authenticate(user)
+    note_payload["note"] = "最高！"
+    response_update = api_client.patch(
+        reverse("tastingnote-detail", args=[note.id]), data=note_payload, format="json"
+    )
+    assert response_update.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_update_tasting_note_unauthenticated(api_client, note, note_payload):
+    note_payload["note"] = "good!"
+    response = api_client.patch(
+        reverse("tastingnote-detail", args=[note.id]), data=note_payload, format="json"
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_update_other_users_tasting_note(api_client, user, note_payload):
+    api_client.force_authenticate(user=user)
+    another_user = User.objects.create_user(username="other_user", password="password")
+    another_whisky = Whisky.objects.create(name="Another Whisky", owner=another_user)
+    another_note = TastingNote.objects.create(
+        whisky=another_whisky, owner=another_user, note="スモーキー"
+    )
+    note_payload["whisky"] = another_whisky.id  # type: ignore
+    response_update = api_client.patch(
+        reverse("tastingnote-detail", args=[another_note.id]),  # type:ignore
+        data=note_payload,
+        format="json",
+    )
+    assert response_update.status_code == status.HTTP_403_FORBIDDEN
