@@ -10,7 +10,7 @@ class WhiskyList(generics.ListCreateAPIView):
     serializer_class = WhiskySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer) -> None:
         serializer.save(owner=self.request.user)
 
 
@@ -25,7 +25,7 @@ class TastingNoteList(generics.ListCreateAPIView):
     serializer_class = TastingNoteSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer) -> None:
         serializer.save(owner=self.request.user)
 
 

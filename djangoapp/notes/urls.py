@@ -7,6 +7,6 @@ urlpatterns = [
     path(
         "detail/<int:pk>", views.TastingNoteDetail.as_view(), name="tastingnote-detail"
     ),
-    path("whiskies", views.WhiskyList.as_view(), name="whiskies-list"),
+    path("whiskies", views.WhiskyList.as_view(), name="whisky-list"),
     path("whisky-detail/<int:pk>", views.WhiskyDetail.as_view(), name="whisky-detail"),
 ]
