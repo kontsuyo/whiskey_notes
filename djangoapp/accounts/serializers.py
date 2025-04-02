@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import CustomUser
+from .models import TastingNoteUser
 
 UserModel = get_user_model()
 
@@ -18,5 +18,5 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return user
 
     class Meta:
-        model = CustomUser
+        model = TastingNoteUser
         fields = ["id", "username", "password", "email"]
