@@ -1,27 +1,82 @@
-import pytest
+import logging
 
-from accounts.models import CustomUser
+import pytest
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
+User = get_user_model()
 
 
 @pytest.mark.django_db
-class TestCustomUser:
-    def setup_method(self):
-        self.username = "testuser"
-        self.password = "password"
-        self.email = ""
+def test_user_id_auto_added(user):
+    logger.info(f"ID: {user.id}")
+    assert user.id
 
-    def test_create_user(self):
-        user = CustomUser.objects.create_user(
-            username=self.username,
-            password=self.password,
-            email=self.email,
-        )
-        assert CustomUser.objects.filter(id=user.id).exists()  # type: ignore
 
-    def test_create_super_user(self):
-        super_user = CustomUser.objects.create_superuser(
-            username=self.username,
-            password=self.password,
-            email=self.email,
-        )
-        assert CustomUser.objects.filter(id=super_user.id).exists()  # type: ignore
+@pytest.mark.django_db
+def test_user_name_is_duplicate(user):
+    create_user = User.objects.create_user(
+        username="create_user",
+        password="password",
+        email="test@sample.com",
+    )
+    create_user.username = user.username
+
+    with pytest.raises(ValidationError) as e:
+        create_user.full_clean()
+
+    assert "そのユーザー名はすでに存在します。" in str(e.value)
+
+
+@pytest.mark.django_db
+def test_user_name_character_counts(user):
+    user.username = "a" * 31
+
+    with pytest.raises(ValidationError) as e:
+        user.full_clean()
+
+    error_message = "この値は 30 文字以下でなければなりません( 31 文字になっています"
+    assert error_message in str(e.value)
+
+
+@pytest.mark.django_db
+def test_user_password_character_counts(user):
+    user.password = "a" * 129
+
+    with pytest.raises(ValidationError) as e:
+        user.full_clean()
+
+    error_message = "この値は 128 文字以下でなければなりません( 129 文字になっています"
+    assert error_message in str(e.value)
+
+
+@pytest.mark.django_db
+def test_user_email_character_counts(user):
+    user.email = "a" * 255
+
+    with pytest.raises(ValidationError) as e:
+        user.full_clean()
+
+    error_message = "この値は 254 文字以下でなければなりません( 255 文字になっています"
+    assert error_message in str(e.value)
+
+
+@pytest.mark.django_db
+def test_user_email_is_duplicate(user):
+    create_user = User.objects.create_user(
+        username="create_user",
+        password="password",
+        email="create@sample.com",
+    )
+    create_user.email = user.email
+
+    with pytest.raises(ValidationError) as e:
+        create_user.full_clean()
+
+    assert "この Email address を持った ユーザー が既に存在します。" in str(e.value)
+
+
+@pytest.mark.django_db
+def test_user_str_method_returns_username(user):
+    assert str(user) == "testuser"
