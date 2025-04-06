@@ -5,7 +5,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 
-class TastingNoteUser(AbstractUser):
+class CustomUser(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(
         error_messages={"unique": "そのユーザー名はすでに存在します。"},
