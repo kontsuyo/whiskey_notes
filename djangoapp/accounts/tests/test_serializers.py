@@ -3,7 +3,7 @@ import logging
 import pytest
 from django.contrib.auth import get_user_model
 
-from accounts.serializers import TastingNoteUserSerializer
+from accounts.serializers import CustomUserSerializer
 
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.mark.django_db
 def test_validate_data_at_create_user(user_payload):
-    serializer = TastingNoteUserSerializer(data=user_payload)
+    serializer = CustomUserSerializer(data=user_payload)
     assert serializer.is_valid()
     logger.info(f"serializer.data:           {serializer.data}")
     logger.info(f"serializer.validated_data: {serializer.validated_data}")
@@ -23,7 +23,7 @@ def test_validate_data_at_create_user(user_payload):
 
 @pytest.mark.django_db
 def test_password_is_write_only_field(user_payload):
-    serializer = TastingNoteUserSerializer(data=user_payload)
+    serializer = CustomUserSerializer(data=user_payload)
     assert serializer.is_valid()
     logger.info(serializer.data)
     assert "password" not in serializer.data

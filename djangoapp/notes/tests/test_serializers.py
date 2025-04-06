@@ -31,7 +31,9 @@ def test_tasting_note_serializer_valid_user(user, note_payload):
 
 @pytest.mark.django_db
 def test_tasting_note_serializer_invalid_user(note_payload):
-    another_user = User.objects.create(username="another_user")
+    another_user = User.objects.create_user(
+        username="another_user", password="pass", email="test@example.com"
+    )
     serializer = TastingNoteSerializer(
         data=note_payload,
         context={"request": Mock(user=another_user)},
