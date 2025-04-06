@@ -4,7 +4,7 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class TastingNoteUserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
 

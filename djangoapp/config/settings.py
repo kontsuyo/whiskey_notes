@@ -174,4 +174,4 @@ LOGGING = {
     },
 }
 
-AUTH_USER_MODEL = "accounts.TastingNoteUser"
+AUTH_USER_MODEL = "accounts.CustomUser"
