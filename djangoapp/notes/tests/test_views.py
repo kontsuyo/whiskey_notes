@@ -49,7 +49,9 @@ def test_update_whisky_unauthenticated(api_client, whisky, whisky_payload):
 
 @pytest.mark.django_db
 def test_update_other_users_whisky(api_client, user, whisky_payload):
-    another_user = User.objects.create_user(username="another", password="password")
+    another_user = User.objects.create_user(
+        username="another", password="password", email="another@example.com"
+    )
     another_whisky = Whisky.objects.create(name="Another Whisky", owner=another_user)
 
     api_client.force_authenticate(user=user)
@@ -100,7 +102,9 @@ def test_update_tasting_note_unauthenticated(api_client, note, note_payload):
 @pytest.mark.django_db
 def test_update_other_users_tasting_note(api_client, user, note_payload):
     api_client.force_authenticate(user=user)
-    another_user = User.objects.create_user(username="other_user", password="password")
+    another_user = User.objects.create_user(
+        username="other_user", password="password", email="another@example.com"
+    )
     another_whisky = Whisky.objects.create(name="Another Whisky", owner=another_user)
     another_note = TastingNote.objects.create(
         whisky=another_whisky, owner=another_user, note="スモーキー"
