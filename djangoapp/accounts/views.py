@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from accounts.serializers import CustomUserSerializer
+from accounts.serializers import CustomUserSerializer, RegisterSerializer
 
 User = get_user_model()
 
@@ -26,3 +28,34 @@ class CreateUser(generics.CreateAPIView):
     permission_classes = [
         permissions.AllowAny,
     ]
+
+
+class RegisterView(APIView):
+
+    @staticmethod
+    def post(request, *args, **kwargs):
+        """
+        Register a new user.
+        """
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                serializer.save()
+                return Response(
+                    {
+                        "user": serializer.data,
+                        "message": "User created successfully",
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+            except ValidationError as e:
+                return Response(
+                    {"error": e.detail},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except IntegrityError as e:
+                return Response(
+                    {"error": "Database integrity error"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
