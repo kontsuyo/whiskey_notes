@@ -48,9 +48,14 @@ class RegisterView(APIView):
                     },
                     status=status.HTTP_201_CREATED,
                 )
-            except Exception as e:
+            except ValidationError as e:
                 return Response(
-                    {"error": str(e)},
+                    {"error": e.detail},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except IntegrityError as e:
+                return Response(
+                    {"error": "Database integrity error"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
