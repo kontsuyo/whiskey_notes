@@ -24,5 +24,6 @@ def user_payload():
     return {
         "username": "testuser",
         "password": "password1234",
+        "password_confirm": "password1234",
         "email": "test@sample.com",
     }
