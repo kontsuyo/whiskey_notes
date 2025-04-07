@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from rest_framework import generics, permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -53,7 +55,7 @@ class RegisterView(APIView):
                     {"error": e.detail},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            except IntegrityError as e:
+            except IntegrityError:
                 return Response(
                     {"error": "Database integrity error"},
                     status=status.HTTP_400_BAD_REQUEST,
