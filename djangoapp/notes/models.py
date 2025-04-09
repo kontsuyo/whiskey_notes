@@ -1,7 +1,5 @@
 from django.db import models
 
-from accounts.models import CustomUser
-
 
 class Whisky(models.Model):
     SCOTLAND = "SC"
@@ -27,7 +25,9 @@ class Whisky(models.Model):
     img = models.ImageField(blank=True, null=True)
     price = models.CharField(max_length=200, blank=True)
     owner = models.ForeignKey(
-        CustomUser, related_name="whisky", on_delete=models.CASCADE
+        "accounts.CustomUser",
+        related_name="owned_whiskies",
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
@@ -41,7 +41,9 @@ class TastingNote(models.Model):
     post_date = models.DateField(auto_now_add=True)
     note = models.TextField(blank=False, null=False)
     owner = models.ForeignKey(
-        CustomUser, related_name="tasting_note", on_delete=models.CASCADE
+        "accounts.CustomUser",
+        related_name="tasting_notes",
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
