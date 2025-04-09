@@ -22,6 +22,13 @@ class CustomUser(AbstractUser):
         unique=True,
         verbose_name="email address",
     )
+    whisky = models.ForeignKey(
+        "notes.Whisky",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="user_whisky",
+    )
 
     def __str__(self):
         return str(self.username)
