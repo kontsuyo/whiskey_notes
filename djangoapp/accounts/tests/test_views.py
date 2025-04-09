@@ -1,9 +1,12 @@
+import logging
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.django_db
@@ -36,3 +39,16 @@ def test_register_user(api_client, user_payload):
     )
     assert response_register.status_code == status.HTTP_400_BAD_REQUEST  # type: ignore
     assert "email" in response_register.data  # type: ignore
+
+
+@pytest.mark.django_db
+def test_login_user(api_client, user):
+    # login with valid credentials
+    response_login = api_client.post(
+        reverse("login-user"),
+        {"username": user.username, "password": "password"},
+        format="json",
+    )
+    logger.info(f"response_login: {response_login.data}")
+    assert response_login.status_code == status.HTTP_200_OK
+    assert "token" in response_login.data
