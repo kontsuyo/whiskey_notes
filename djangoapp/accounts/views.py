@@ -26,6 +26,7 @@ class UserDetail(generics.RetrieveAPIView):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
     ]
+    lookup_field = "username"
 
 
 class CreateUser(generics.CreateAPIView):
