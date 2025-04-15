@@ -3,7 +3,11 @@ import logging
 import pytest
 from django.contrib.auth import get_user_model
 
-from accounts.serializers import CustomUserSerializer, RegisterSerializer
+from accounts.serializers import (
+    CustomUserSerializer,
+    RegisterSerializer,
+    UserUpdateSerializer,
+)
 
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
@@ -36,3 +40,30 @@ def test_register_serializer_password_mismatch(user_payload):
     serializer = RegisterSerializer(data=user_payload)
     assert not serializer.is_valid()
     assert "Passwords do not match" in str(serializer.errors)
+
+
+@pytest.mark.django_db
+def test_user_update_serializer(user_payload):
+    # password mismatch
+    user_payload["password_confirm"] = "different_password"
+    serializer_update = UserUpdateSerializer(data=user_payload)
+    assert not serializer_update.is_valid()
+    logger.info(f"serializer.errors: {serializer_update.errors}")
+    assert "Passwords do not match" in str(serializer_update.errors)
+
+    # password & password_confirm are write only
+    update_data = {
+        "username": "updateduser",
+        "password": "newpassword123",
+        "password_confirm": "newpassword123",
+        "email": "new-email@sample.com",
+    }
+    serializer_update = UserUpdateSerializer(data=update_data)
+    assert serializer_update.is_valid()
+    logger.info(serializer_update.data)
+    assert "password" not in serializer_update.data
+    assert "password_confirm" not in serializer_update.data
+
+    # update user details
+    assert serializer_update.data["username"] == update_data["username"]
+    assert serializer_update.data["email"] == update_data["email"]

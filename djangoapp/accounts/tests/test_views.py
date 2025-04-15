@@ -52,3 +52,34 @@ def test_login_user(api_client, user):
     logger.info(f"response_login: {response_login.data}")
     assert response_login.status_code == status.HTTP_200_OK
     assert "token" in response_login.data
+
+
+@pytest.mark.django_db
+def test_update_user(api_client, user):
+    # update user details
+    api_client.force_authenticate(user=user)
+    update_data = {
+        "username": "updateduser",
+        "password": "newpassword123",
+        "password_confirm": "newpassword123",
+        "email": "new-email@sample.com",
+    }
+    response_update = api_client.patch(
+        reverse("user-update", kwargs={"username": user.username}),
+        update_data,
+        format="json",
+    )
+    logger.info(f"response_update: {response_update.data}")
+    assert response_update.status_code == status.HTTP_200_OK
+    user.refresh_from_db()
+    assert user.check_password(update_data["password"])
+
+    # user not found
+    response_update = api_client.patch(
+        reverse("user-update", kwargs={"username": "nonexistentuser"}),
+        update_data,
+        format="json",
+    )
+    assert response_update.status_code == status.HTTP_404_NOT_FOUND
+    assert response_update.data["error"] == "User not found"
+    logger.info(f"response_update: {response_update.data}")
