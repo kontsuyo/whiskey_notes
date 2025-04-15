@@ -5,7 +5,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.serializers import CustomUserSerializer, RegisterSerializer
+from accounts.serializers import (
+    CustomUserSerializer,
+    RegisterSerializer,
+    UserUpdateSerializer,
+)
 
 User = get_user_model()
 
@@ -77,3 +81,36 @@ class LoginView(ObtainAuthToken):
         user = serializer.validated_data["user"]  # type: ignore
         token, created = Token.objects.get_or_create(user=user)
         return Response({"token": token.key, "user_id": user.pk, "email": user.email})
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        """
+        Logout a user by deleting their authentication token.
+        """
+        request.user.auth_token.delete()
+        return Response(
+            {"message": "User logged out successfully"}, status=status.HTTP_200_OK
+        )
+
+
+class UserUpdateView(APIView):
+    def patch(self, request, username):
+        """
+        Update a user's details.
+        """
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

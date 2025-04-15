@@ -1,11 +1,13 @@
 {
   "cSpell.words": [
     "authtoken",
+    "nonexistentuser",
     "pytest",
     "strongpassword",
     "talisker",
     "tastingnote",
-    "testpaths"
+    "testpaths",
+    "updateduser"
   ],
   "python.testing.pytestArgs": [
     "accounts"
