@@ -4,8 +4,14 @@ from accounts import views
 
 urlpatterns = [
     path("", views.UserList.as_view(), name="user-list"),
-    path("detail/<str:username>", views.UserDetail.as_view(), name="user-detail"),
     path("register/", views.RegisterView.as_view(), name="register-user"),
     path("login/", views.LoginView.as_view(), name="login-user"),
-    path("update/<str:username>", views.UserUpdateView.as_view(), name="user-update"),
+    path("logout/", views.LogoutView.as_view(), name="logout-user"),
+    # path("<str:username>/", views.UserDetail.as_view(), name="user-detail"),
+    path("<str:username>/", views.UserDetailView.as_view(), name="user-detail"),
+    path(
+        "<str:username>/update/",
+        views.UserUpdateView.as_view(),
+        name="user-update",
+    ),
 ]

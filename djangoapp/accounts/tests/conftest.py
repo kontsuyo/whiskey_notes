@@ -27,3 +27,13 @@ def user_payload():
         "password_confirm": "password1234",
         "email": "test@sample.com",
     }
+
+
+@pytest.fixture
+def update_data():
+    return {
+        "username": "updateduser",
+        "password": "newpassword123",
+        "password_confirm": "newpassword123",
+        "email": "new-email@sample.com",
+    }

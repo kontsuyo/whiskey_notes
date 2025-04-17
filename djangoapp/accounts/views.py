@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -39,37 +39,21 @@ class CreateUser(generics.CreateAPIView):
 
 class RegisterView(APIView):
 
-    @staticmethod
-    def post(request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """
         Register a new user.
         """
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            try:
-                serializer.save()
-                return Response(
-                    {
-                        "user": serializer.data,
-                        "message": "User created successfully",
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
-            except ValidationError as e:
-                return Response(
-                    {"error": e.detail},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            except IntegrityError:
-                return Response(
-                    {"error": "Database integrity error"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            serializer.save()
+            return Response(
+                {
+                    "user": serializer.data,
+                    "message": "User created successfully",
+                },
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.views import ObtainAuthToken
 
 
 class LoginView(ObtainAuthToken):
@@ -97,7 +81,29 @@ class LogoutView(APIView):
         )
 
 
+class UserDetailView(APIView):
+    def get(self, request, username):
+        """
+        Retrieve a user's details.
+        """
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        response_data = {
+            "message": "User details retrieved successfully",
+            "user": {"username": user.username},
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 class UserUpdateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def patch(self, request, username):
         """
         Update a user's details.
@@ -110,7 +116,16 @@ class UserUpdateView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        # ユーザー自身のみが情報を更新可能
+        if request.user != user:
+            return Response(
+                {"error": "You do not have permission to update this user's details."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = UserUpdateSerializer(
+            user, data=request.data, partial=True, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
