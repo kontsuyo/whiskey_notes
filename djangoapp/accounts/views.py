@@ -130,3 +130,31 @@ class UserUpdateView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CloseAccountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, username):
+        """
+        Delete a user's account.
+        """
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ユーザー自身のみがアカウントを削除可能
+        if request.user != user:
+            return Response(
+                {"error": "You do not have permission to delete this user's account."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user.delete()
+        return Response(
+            {"message": "User account deleted successfully"}, status=status.HTTP_204_NO_CONTENT
+        )
