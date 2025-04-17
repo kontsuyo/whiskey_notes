@@ -15,6 +15,15 @@ def user():
 
 
 @pytest.fixture
+def another_user():
+    return User.objects.create_user(
+        username="anotheruser",
+        password="password",
+        email="another@sample.com",
+    )
+
+
+@pytest.fixture
 def api_client():
     yield APIClient()
 
@@ -37,3 +46,11 @@ def update_data():
         "password_confirm": "newpassword123",
         "email": "new-email@sample.com",
     }
+
+
+something = {
+    "username": "fuga",
+    "password": "fuga",
+    "password_confirm": "fuga",
+    "email": "something@sample.com",
+}

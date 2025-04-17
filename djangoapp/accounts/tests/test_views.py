@@ -112,3 +112,37 @@ def test_update_user_without_authentication(api_client, update_data):
     )
     assert response_update.status_code == status.HTTP_401_UNAUTHORIZED
     logger.info(f"response_update: {response_update.data}")
+
+
+@pytest.mark.django_db
+def test_delete_user(api_client, user):
+    # delete user
+    api_client.force_authenticate(user=user)
+    response_delete = api_client.delete(
+        reverse("user-delete", kwargs={"username": user.username}),
+        format="json",
+    )
+    assert response_delete.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_delete_user_without_authentication(api_client, user):
+    # delete user without authentication
+    response_delete = api_client.delete(
+        reverse("user-delete", kwargs={"username": user.username}),
+        format="json",
+    )
+    assert response_delete.status_code == status.HTTP_401_UNAUTHORIZED
+    logger.info(f"response_delete: {response_delete.data}")
+
+
+@pytest.mark.django_db
+def test_delete_user_by_another_user(api_client, user, another_user):
+    # delete user by another user
+    api_client.force_authenticate(user=another_user)
+    response_delete = api_client.delete(
+        reverse("user-delete", kwargs={"username": user.username}),
+        format="json",
+    )
+    assert response_delete.status_code == status.HTTP_403_FORBIDDEN
+    logger.info(f"response_delete: {response_delete.data}")
