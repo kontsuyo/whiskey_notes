@@ -14,7 +14,6 @@ class WhiskySerializer(serializers.ModelSerializer):
             "name",
             "country",
             "alcohol",
-            "cask",
             "img",
             "price",
             "owner",
