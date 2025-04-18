@@ -20,24 +20,7 @@ class UserList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class UserDetail(generics.RetrieveAPIView):
-    queryset = User.objects.all()
-    serializer_class = CustomUserSerializer
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-    ]
-    lookup_field = "username"
-
-
-class CreateUser(generics.CreateAPIView):
-    model = User
-    serializer_class = CustomUserSerializer
-    permission_classes = [
-        permissions.AllowAny,
-    ]
-
-
-class RegisterView(APIView):
+class UserRegisterView(APIView):
 
     def post(self, request, *args, **kwargs):
         """
@@ -156,5 +139,6 @@ class CloseAccountView(APIView):
 
         user.delete()
         return Response(
-            {"message": "User account deleted successfully"}, status=status.HTTP_204_NO_CONTENT
+            {"message": "User account deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT,
         )
